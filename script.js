@@ -1194,12 +1194,20 @@ function initSubmitModal() {
           body: JSON.stringify(automatedPayload)
         }).then(async (response) => {
           let result = null;
-          try {
-            result = await response.json();
-          } catch (_) {}
+          const responseText = await response.text();
+          if (responseText) {
+            try {
+              result = JSON.parse(responseText);
+            } catch (_) {
+              console.warn('Google Apps Script returned a non-JSON response.');
+            }
+          }
 
-          if (!response.ok || !result || result.status !== 'success') {
+          if (!response.ok) {
             throw new Error((result && result.error) || `Google submission failed (${response.status})`);
+          }
+          if (result && result.status === 'error') {
+            throw new Error(result.error || 'Google submission returned an error');
           }
           console.log('Agreement saved to Google Sheets:', result);
         }).catch(err => {
