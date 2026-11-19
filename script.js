@@ -990,7 +990,7 @@ const SUBMISSION_CONFIG = {
   web3formsKey: '',
 
   // Option 2: Google Apps Script Web App URL (Live & Connected to asharaizexpedite@gmail.com)
-  googleAppsScriptUrl: 'https://script.google.com/macros/s/AKfycbwqjBv-gRvb9o1JHCd8TnngcgsDE3arYRMQVH9E5haUhR9IL9ZTqjF4gF5faWr0_ge0SA/exec'
+  googleAppsScriptUrl: 'https://script.google.com/macros/s/AKfycbw4TekS33y1SLXoOzwxM3USEvYcGFOasoJgTzafri3i5Gex-6dBDmPpYSYZRTuXe-PqVw/exec'
 };
 
 function initSubmitModal() {
