@@ -1074,7 +1074,7 @@ function initSubmitModal() {
       const successSigner = document.getElementById('successSigner');
       const successTime = document.getElementById('successTime');
 
-      const refIdString = '#JB-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const refIdString = '#AL-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
       if (successRefId) successRefId.textContent = refIdString;
       if (successCarrier) successCarrier.textContent = carrier;
       if (successSigner) successSigner.textContent = signer;
