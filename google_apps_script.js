@@ -5,6 +5,7 @@
 
 var SHEET_NAME = "Submissions";
 var RECIPIENT = "asharaizexpedite@gmail.com";
+var SPREADSHEET_ID = "1H_xhkywumEz_xjePfP3Fyu-Eg4DFZhTbUoGsYodzPYc";
 var HEADERS = [
   "Timestamp",
   "Reference ID",
@@ -164,9 +165,15 @@ function doPost(e) {
 }
 
 function getSubmissionsSheet() {
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var spreadsheet;
+  if (SPREADSHEET_ID) {
+    spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  } else {
+    spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  }
+
   if (!spreadsheet) {
-    throw new Error("This script must be opened from Extensions inside the destination Google Sheet.");
+    throw new Error("Destination Google Sheet could not be opened.");
   }
 
   var sheet = spreadsheet.getSheetByName(SHEET_NAME);
