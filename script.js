@@ -884,8 +884,37 @@ function updateEndSummary() {
       `Submission Timestamp: ${new Date().toLocaleString()}\n\n` +
       `All 7 pages of the official agreement and payment authorizations are confirmed.`
     );
-    mailtoBtn.href = `mailto:asharaizexpedite@gmail.com?subject=${subject}&body=${body}`;
+    mailtoBtn.href = buildGmailComposeUrl(
+      'asharaizexpedite@gmail.com',
+      `New Signed Carrier Agreement: ${carrier} (${signer})`,
+      `CARRIER DISPATCH SERVICE AGREEMENT SUBMISSION\n` +
+      `==========================================\n` +
+      `🔗 CLICK HERE TO VIEW / PRINT THIS FILLED AGREEMENT ONLINE:\n` +
+      `${packageUrl}\n\n` +
+      `Carrier / Company Name: ${carrier}\n` +
+      `Authorized Signer: ${signer}\n` +
+      `Signer Title: ${title}\n` +
+      `Agreement Date: ${date}\n` +
+      `DOT or MC Number: ${dot}\n` +
+      `Agreed Pricing Terms: ${rate}\n` +
+      `Digital Signature Status: Verified & Attached\n` +
+      `Submission Timestamp: ${new Date().toLocaleString()}\n\n` +
+      `All 7 pages of the official agreement and payment authorizations are confirmed.`
+    );
+    mailtoBtn.target = '_blank';
+    mailtoBtn.rel = 'noopener';
   }
+}
+
+function buildGmailComposeUrl(recipient, subject, body) {
+  const params = new URLSearchParams({
+    view: 'cm',
+    fs: '1',
+    to: recipient,
+    su: subject,
+    body: body
+  });
+  return `https://mail.google.com/mail/?${params.toString()}`;
 }
 
 /* ==========================================================================
@@ -1101,7 +1130,23 @@ function initSubmitModal() {
           `Submission Time: ${new Date().toLocaleString()}\n\n` +
           `[NOTE: My completed 7-page PDF is attached to this email.]`
         );
-        btnSuccessMailto.href = `mailto:asharaizexpedite@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+        btnSuccessMailto.href = buildGmailComposeUrl(
+          'asharaizexpedite@gmail.com',
+          `Signed Carrier Agreement: ${carrier} (${signer}) [${refIdString}]`,
+          `Dear Asharaiz Logistics LLC,\n\n` +
+          `Please find attached my completed and signed 7-Page Service Agreement and Authorizations.\n\n` +
+          `🔗 DIRECT LINK TO VIEW / PRINT THIS FILLED AGREEMENT ONLINE:\n${packageUrl}\n\n` +
+          `Carrier / Company: ${carrier}\n` +
+          `Authorized Signer: ${signer} (${title})\n` +
+          `Agreement Date: ${date}\n` +
+          `DOT or MC Number: ${dot}\n` +
+          `Agreed Rate Terms: ${rate}\n` +
+          `Digital Signatures: Verified & Timestamped\n` +
+          `Submission Time: ${new Date().toLocaleString()}\n\n` +
+          `[NOTE: Attach the downloaded PDF to this email.]`
+        );
+        btnSuccessMailto.target = '_blank';
+        btnSuccessMailto.rel = 'noopener';
       }
 
       // Configure WhatsApp Share Link
