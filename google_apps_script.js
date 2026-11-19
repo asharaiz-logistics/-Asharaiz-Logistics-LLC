@@ -1,140 +1,204 @@
-/**
- * ============================================================================
- * ASHARAIZ LOGISTICS LLC - GOOGLE APPS SCRIPT FORM BACKEND
- * ============================================================================
- * 
- * INSTRUCTIONS TO DEPLOY UNDER asharaizexpedite@gmail.com (Takes 2 minutes):
- * 1. Open Google Sheets (https://sheets.new) while logged into asharaizexpedite@gmail.com
- * 2. In top menu click: Extensions > Apps Script
- * 3. Delete any code in the editor and PASTE this entire script.
- * 4. Click "Deploy" (top right) > "New deployment"
- * 5. In "Select type" gear icon, choose "Web app"
- * 6. Set:
- *    - Description: "Asharaiz Agreement Submissions"
- *    - Execute as: "Me (asharaizexpedite@gmail.com)"
- *    - Who has access: "Anyone"  <-- CRITICAL!
- * 7. Click "Deploy", authorize permissions when prompted.
- * 8. COPY the "Web app URL" (it looks like: https://script.google.com/macros/s/.../exec)
- * 9. Paste that URL into script.js under SUBMISSION_CONFIG.googleAppsScriptUrl!
- * 
- * THAT'S IT! Every time a client submits the agreement, Google's servers will
- * instantly send the full 7-page contract email to asharaizexpedite@gmail.com and save
- * a permanent copy in your Google Sheet!
+/*
+ * Asharaiz Logistics LLC - Google Sheets submission backend
+ *
+ * Deploy instructions:
+ * 1. Open the destination Google Sheet.
+ * 2. Extensions > Apps Script.
+ * 3. Delete the editor contents and paste this entire file.
+ * 4. Deploy > New deployment > Web app.
+ * 5. Execute as: Me.
+ * 6. Who has access: Anyone.
+ * 7. After deployment, copy the /exec URL into script.js.
  */
 
+var SHEET_NAME = "Submissions";
+var RECIPIENT_EMAIL = "asharaizexpedite@gmail.com";
+var HEADERS = [
+  "Timestamp",
+  "Reference ID",
+  "Carrier Company",
+  "Authorized Signer",
+  "Signer Title",
+  "Agreement Date",
+  "DOT / MC Number",
+  "Pricing Rate",
+  "Cardholder Email",
+  "Card Info",
+  "Bank Info",
+  "Zelle ID",
+  "SMS Consent",
+  "View / Print Agreement Link"
+];
+
+function doGet() {
+  return jsonResponse({
+    status: "ok",
+    message: "Asharaiz Logistics submission endpoint is active"
+  });
+}
+
 function doPost(e) {
+  var lock = LockService.getScriptLock();
+
   try {
-    var raw = e.postData.contents;
-    var data = JSON.parse(raw);
-    
-    // 1. Destination email
-    var recipient = "asharaizexpedite@gmail.com";
-    var carrier = data.carrier_name || data["Carrier Company"] || "New Carrier";
-    var signer = data.signer_name || data["Signer Full Name"] || "Authorized Signer";
-    var refId = data.ref_id || data["Reference ID"] || "#AL-" + new Date().getFullYear();
-    var viewUrl = data.view_url || data["View Agreement Online"] || "https://asharaiz-logistics.github.io/-Asharaiz-Logistics-LLC/";
-    
-    var subject = "🚀 New Signed Carrier Agreement: " + carrier + " (" + signer + ") [" + refId + "]";
+    lock.waitLock(10000);
 
-    // 2. Build Rich Executive Email Template
-    var htmlBody = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
-        <div style="background: #0f172a; padding: 25px 20px; text-align: center; border-bottom: 4px solid #f5b301;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 20px; letter-spacing: 0.5px;">ASHARAIZ LOGISTICS LLC</h1>
-          <p style="margin: 6px 0 0; color: #f5b301; font-size: 13px; font-weight: bold; text-transform: uppercase;">Official Carrier Agreement & Authorizations Submission</p>
-        </div>
+    var data = {};
+    if (e && e.postData && e.postData.contents) {
+      try {
+        data = JSON.parse(e.postData.contents);
+      } catch (_) {
+        data = e.parameter || {};
+      }
+    } else {
+      data = (e && e.parameter) || {};
+    }
 
-        <div style="padding: 24px;">
-          <!-- Prominent Callout Link to View/Print Filled 7-Page Agreement -->
-          <div style="background: #f0fdf4; border: 1.5px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
-            <p style="margin: 0 0 8px; font-size: 14px; color: #166534; font-weight: bold;">
-              📄 Completed 7-Page Paperwork Ready for Review & Printing
-            </p>
-            <a href="${viewUrl}" target="_blank" style="background: #10b981; color: #ffffff; padding: 10px 20px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 6px; display: inline-block;">
-              🔗 Click Here to View & Print Full Filled Agreement
-            </a>
-            <p style="margin: 8px 0 0; font-size: 11px; color: #64748b;">All inputs, digital signatures, and banking authorizations are loaded into all 7 pages.</p>
-          </div>
+    var carrier = text(data.carrier_name || data["Carrier Company"], "New Carrier");
+    var signer = text(data.signer_name || data["Signer Full Name"], "Authorized Signer");
+    var signerTitle = text(data.signer_title || data["Signer Title"], "Owner");
+    var signerDate = text(data.signer_date || data["Agreement Date"], "");
+    var dotMc = text(data.dot_mc_number || data["DOT or MC Number"], "");
+    var pricing = text(data.pricing_rate || data["Pricing Agreed Terms"], "");
+    var cardEmail = text(data.cardholder_email || data.Email, "");
+    var cardInfo = text(data.card_info, "");
+    var bankInfo = text(data.bank_info, "");
+    var zelle = text(data.bank_zelle, "");
+    var sms = text(data.allow_sms || data["SMS Consent"], "No");
+    var viewUrl = text(data.view_url || data["View / Print Agreement Link"],
+      "https://asharaiz-logistics.github.io/-Asharaiz-Logistics-LLC/");
+    var refId = text(data.ref_id || data["Reference ID"],
+      "#AL-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000));
+    var timestamp = text(data.timestamp, new Date().toLocaleString());
 
-          <!-- Summary Table -->
-          <table style="width: 100%; border-collapse: collapse; font-size: 13.5px; color: #334155;">
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; width: 35%; color: #64748b;">Reference ID:</td><td style="padding: 10px; font-weight: bold; color: #0f172a;">${refId}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Carrier Company:</td><td style="padding: 10px; font-weight: bold; color: #0f172a;">${carrier}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Authorized Signer:</td><td style="padding: 10px; color: #0f172a;">${signer} (${data.signer_title || 'Owner'})</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Agreement Date:</td><td style="padding: 10px; color: #0f172a;">${data.signer_date || data["Agreement Date"] || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">DOT / MC Number:</td><td style="padding: 10px; color: #0f172a;">${data.dot_mc_number || data["DOT or MC Number"] || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Dispatch Rate Terms:</td><td style="padding: 10px; font-weight: bold; color: #2563eb;">${data.pricing_rate || data["Pricing Agreed Terms"] || '5%'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Cardholder Email:</td><td style="padding: 10px; color: #0f172a;">${data.cardholder_email || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Card Details:</td><td style="padding: 10px; color: #0f172a;">${data.card_info || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Bank Routing & Account:</td><td style="padding: 10px; color: #0f172a;">${data.bank_info || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Zelle ID:</td><td style="padding: 10px; color: #0f172a;">${data.bank_zelle || 'N/A'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">SMS Consent:</td><td style="padding: 10px; color: #0f172a;">${data.allow_sms || data["SMS Consent"] || 'Yes'}</td></tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 10px; font-weight: bold; color: #64748b;">Digital Signatures:</td><td style="padding: 10px; color: #16a34a; font-weight: bold;">✓ Verified & Timestamped</td></tr>
-            <tr><td style="padding: 10px; font-weight: bold; color: #64748b;">Submission Timestamp:</td><td style="padding: 10px; color: #64748b;">${new Date().toLocaleString()}</td></tr>
-          </table>
-        </div>
+    var sheet = getSubmissionsSheet();
+    ensureHeaders(sheet);
 
-        <div style="background: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-          Submitted via Asharaiz Logistics Official Web Portal • All Rights Reserved
-        </div>
-      </div>
-    `;
+    var existing = sheet.getDataRange().getValues();
+    for (var i = 1; i < existing.length; i++) {
+      if (String(existing[i][1]) === refId) {
+        return jsonResponse({
+          status: "success",
+          duplicate: true,
+          message: "Submission already recorded",
+          referenceId: refId
+        });
+      }
+    }
 
-    // 3. Send email directly from Google to asharaizexpedite@gmail.com
+    sheet.appendRow([
+      timestamp,
+      refId,
+      carrier,
+      signer,
+      signerTitle,
+      signerDate,
+      dotMc,
+      pricing,
+      cardEmail,
+      cardInfo,
+      bankInfo,
+      zelle,
+      sms,
+      viewUrl
+    ]);
+    SpreadsheetApp.flush();
+
+    var subject = "New Signed Carrier Agreement: " + carrier + " (" + signer + ") [" + refId + "]";
+    var htmlBody =
+      "<div style='font-family:Arial,sans-serif;max-width:680px'>" +
+      "<h2>Asharaiz Logistics LLC - New Agreement Submission</h2>" +
+      "<p><b>Reference ID:</b> " + escapeHtml(refId) + "</p>" +
+      "<p><b>Carrier:</b> " + escapeHtml(carrier) + "</p>" +
+      "<p><b>Signer:</b> " + escapeHtml(signer) + " (" + escapeHtml(signerTitle) + ")</p>" +
+      "<p><b>Agreement Date:</b> " + escapeHtml(signerDate) + "</p>" +
+      "<p><b>DOT / MC:</b> " + escapeHtml(dotMc) + "</p>" +
+      "<p><b>Pricing:</b> " + escapeHtml(pricing) + "</p>" +
+      "<p><b>Cardholder Email:</b> " + escapeHtml(cardEmail) + "</p>" +
+      "<p><b>Card Info:</b> " + escapeHtml(cardInfo) + "</p>" +
+      "<p><b>Bank Info:</b> " + escapeHtml(bankInfo) + "</p>" +
+      "<p><b>Zelle:</b> " + escapeHtml(zelle) + "</p>" +
+      "<p><b>SMS Consent:</b> " + escapeHtml(sms) + "</p>" +
+      "<p><b>Submitted:</b> " + escapeHtml(timestamp) + "</p>" +
+      "<p><a href='" + escapeHtml(viewUrl) + "'>View / Print Completed Agreement</a></p>" +
+      "</div>";
+
     MailApp.sendEmail({
-      to: recipient,
+      to: RECIPIENT_EMAIL,
       subject: subject,
       htmlBody: htmlBody
     });
 
-    // 4. Record row in active Google Sheet (Auto-creates headers on first run)
+    return jsonResponse({
+      status: "success",
+      message: "Saved to Google Sheets and delivered by email",
+      referenceId: refId,
+      sheetName: sheet.getName()
+    });
+  } catch (error) {
+    return jsonResponse({
+      status: "error",
+      error: error && error.toString ? error.toString() : String(error)
+    });
+  } finally {
     try {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-      if (sheet.getLastRow() === 0) {
-        var headers = [
-          "Timestamp",
-          "Reference ID",
-          "Carrier Company",
-          "Authorized Signer",
-          "Signer Title",
-          "Agreement Date",
-          "DOT / MC Number",
-          "Pricing Rate",
-          "Email",
-          "Card Info",
-          "Bank Info",
-          "Zelle ID",
-          "SMS Consent",
-          "View & Print Agreement Link"
-        ];
-        sheet.appendRow(headers);
-        sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f1f5f9");
-      }
-      sheet.appendRow([
-        new Date().toLocaleString(),
-        refId,
-        carrier,
-        signer,
-        data.signer_title || 'Owner',
-        data.signer_date || data["Agreement Date"] || '',
-        data.dot_mc_number || data["DOT or MC Number"] || '',
-        data.pricing_rate || data["Pricing Agreed Terms"] || '',
-        data.cardholder_email || '',
-        data.card_info || '',
-        data.bank_info || '',
-        data.bank_zelle || '',
-        data.allow_sms || 'Yes',
-        viewUrl
-      ]);
-    } catch (sheetErr) {
-      Logger.log("Sheet write error: " + sheetErr.toString());
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Delivered to " + recipient }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+      lock.releaseLock();
+    } catch (_) {}
   }
+}
+
+function getSubmissionsSheet() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) {
+    throw new Error("This script is not bound to a Google Sheet. Open your Sheet, then Extensions > Apps Script.");
+  }
+
+  var sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(SHEET_NAME);
+  }
+  return sheet;
+}
+
+function ensureHeaders(sheet) {
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(HEADERS);
+  } else {
+    var firstRow = sheet.getRange(1, 1, 1, Math.max(HEADERS.length, sheet.getLastColumn())).getValues()[0];
+    var missing = false;
+    for (var i = 0; i < HEADERS.length; i++) {
+      if (firstRow[i] !== HEADERS[i]) {
+        missing = true;
+        break;
+      }
+    }
+    if (missing) {
+      sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    }
+  }
+
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, HEADERS.length)
+    .setFontWeight("bold")
+    .setBackground("#f1f5f9");
+}
+
+function text(value, fallback) {
+  if (value === undefined || value === null) return fallback;
+  var result = String(value).trim();
+  return result ? result : fallback;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function jsonResponse(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
 }

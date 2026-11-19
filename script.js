@@ -1145,13 +1145,21 @@ function initSubmitModal() {
         // Direct Google Apps Script Dispatch (Runs Google-to-Gmail with 100% reliability)
         fetch(SUBMISSION_CONFIG.googleAppsScriptUrl, {
           method: 'POST',
-          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(automatedPayload)
-        }).then(() => {
-          console.log('Agreement package successfully submitted to Google Apps Script');
+        }).then(async (response) => {
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (_) {}
+
+          if (!response.ok || !result || result.status !== 'success') {
+            throw new Error((result && result.error) || `Google submission failed (${response.status})`);
+          }
+          console.log('Agreement saved to Google Sheets:', result);
         }).catch(err => {
-          console.log('Apps Script dispatched:', err);
+          console.error('Google Sheets submission failed:', err);
+          showToast('⚠️ Agreement email opened, but Google Sheets could not be confirmed.');
         });
       } else if (SUBMISSION_CONFIG.web3formsKey) {
         // Option B: Web3Forms Dispatch
