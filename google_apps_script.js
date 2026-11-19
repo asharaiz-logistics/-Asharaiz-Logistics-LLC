@@ -106,6 +106,8 @@ function doPost(e) {
     // 3. Send Email
     MailApp.sendEmail({
       to: RECIPIENT,
+      name: "Asharaiz Logistics LLC",
+      replyTo: RECIPIENT,
       subject: subject,
       htmlBody: htmlBody
     });
