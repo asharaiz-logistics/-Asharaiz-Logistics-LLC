@@ -30,7 +30,7 @@ const defaultData = {
   executive_title: '',
   executive_date: '',
   executive_stamp: '',
-  company_email: 'qaim9825@gmail.com',
+  company_email: 'asharaizexpedite@gmail.com',
   cardholder_email: '',
   product_service: '',
   card_type_other: '',
@@ -884,7 +884,7 @@ function updateEndSummary() {
       `Submission Timestamp: ${new Date().toLocaleString()}\n\n` +
       `All 7 pages of the official agreement and payment authorizations are confirmed.`
     );
-    mailtoBtn.href = `mailto:qaim9825@gmail.com?subject=${subject}&body=${body}`;
+    mailtoBtn.href = `mailto:asharaizexpedite@gmail.com?subject=${subject}&body=${body}`;
   }
 }
 
@@ -986,10 +986,10 @@ function showViewingSubmittedBanner(carrierName, submitDate) {
    CONFIGURABLE FORM SUBMISSION BACKEND
    ========================================================================== */
 const SUBMISSION_CONFIG = {
-  // Option 1: Web3Forms Free Access Key (Get key at https://web3forms.com in 30 sec for qaim9825@gmail.com)
+  // Option 1: Web3Forms Free Access Key (Get key at https://web3forms.com in 30 sec for asharaizexpedite@gmail.com)
   web3formsKey: '',
 
-  // Option 2: Google Apps Script Web App URL (Live & Connected to qaim9825@gmail.com)
+  // Option 2: Google Apps Script Web App URL (Live & Connected to asharaizexpedite@gmail.com)
   googleAppsScriptUrl: 'https://script.google.com/macros/s/AKfycbwqjBv-gRvb9o1JHCd8TnngcgsDE3arYRMQVH9E5haUhR9IL9ZTqjF4gF5faWr0_ge0SA/exec'
 };
 
@@ -1051,7 +1051,7 @@ function initSubmitModal() {
       if (fDot) fDot.value = dot;
       if (fRate) fRate.value = rate;
       if (fCardEmail) fCardEmail.value = cardEmail;
-      if (fUserEmail) fUserEmail.value = (cardEmail && cardEmail !== 'N/A' && cardEmail.includes('@')) ? cardEmail : 'qaim9825@gmail.com';
+      if (fUserEmail) fUserEmail.value = (cardEmail && cardEmail !== 'N/A' && cardEmail.includes('@')) ? cardEmail : 'asharaizexpedite@gmail.com';
       if (fCardInfo) fCardInfo.value = `Name: ${cardName} | Card: ${cardNumber} | Exp: ${cardExp} | ZIP: ${cardZip}`;
       if (fBankInfo) fBankInfo.value = `Routing: ${routing} | Account: ${account}`;
       if (fZelle) fZelle.value = zelle;
@@ -1101,7 +1101,7 @@ function initSubmitModal() {
           `Submission Time: ${new Date().toLocaleString()}\n\n` +
           `[NOTE: My completed 7-page PDF is attached to this email.]`
         );
-        btnSuccessMailto.href = `mailto:qaim9825@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+        btnSuccessMailto.href = `mailto:asharaizexpedite@gmail.com?subject=${mailSubject}&body=${mailBody}`;
       }
 
       // Configure WhatsApp Share Link
@@ -1265,7 +1265,7 @@ function initSubmitModal() {
           directForm.submit();
         }
         if (submitModal) submitModal.classList.remove('show');
-        showToast('🚀 Agreement submitted to qaim9825@gmail.com!');
+        showToast('🚀 Agreement submitted to asharaizexpedite@gmail.com!');
       }
     });
   }

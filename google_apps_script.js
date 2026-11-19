@@ -1,24 +1,24 @@
 /**
  * ============================================================================
- * J&B EXPEDITE LOGISTICS LLC - GOOGLE APPS SCRIPT FORM BACKEND
+ * ASHARAIZ LOGISTICS LLC - GOOGLE APPS SCRIPT FORM BACKEND
  * ============================================================================
  * 
- * INSTRUCTIONS TO DEPLOY (Takes 2 minutes):
- * 1. Open Google Sheets (https://sheets.new)
+ * INSTRUCTIONS TO DEPLOY UNDER asharaizexpedite@gmail.com (Takes 2 minutes):
+ * 1. Open Google Sheets (https://sheets.new) while logged into asharaizexpedite@gmail.com
  * 2. In top menu click: Extensions > Apps Script
  * 3. Delete any code in the editor and PASTE this entire script.
  * 4. Click "Deploy" (top right) > "New deployment"
  * 5. In "Select type" gear icon, choose "Web app"
  * 6. Set:
- *    - Description: "Agreement Submissions"
- *    - Execute as: "Me (your email)"
+ *    - Description: "Asharaiz Agreement Submissions"
+ *    - Execute as: "Me (asharaizexpedite@gmail.com)"
  *    - Who has access: "Anyone"  <-- CRITICAL!
  * 7. Click "Deploy", authorize permissions when prompted.
  * 8. COPY the "Web app URL" (it looks like: https://script.google.com/macros/s/.../exec)
  * 9. Paste that URL into script.js under SUBMISSION_CONFIG.googleAppsScriptUrl!
  * 
  * THAT'S IT! Every time a client submits the agreement, Google's servers will
- * instantly send the full 7-page contract email to qaim9825@gmail.com and save
+ * instantly send the full 7-page contract email to asharaizexpedite@gmail.com and save
  * a permanent copy in your Google Sheet!
  */
 
@@ -28,11 +28,11 @@ function doPost(e) {
     var data = JSON.parse(raw);
     
     // 1. Destination email
-    var recipient = "qaim9825@gmail.com";
+    var recipient = "asharaizexpedite@gmail.com";
     var carrier = data.carrier_name || data["Carrier Company"] || "New Carrier";
     var signer = data.signer_name || data["Signer Full Name"] || "Authorized Signer";
-    var refId = data.ref_id || data["Reference ID"] || "#JB-2025";
-    var viewUrl = data.view_url || data["View Agreement Online"] || "https://qaim9980.github.io/pdf_bymomina/";
+    var refId = data.ref_id || data["Reference ID"] || "#AL-" + new Date().getFullYear();
+    var viewUrl = data.view_url || data["View Agreement Online"] || "https://asharaiz-logistics.github.io/-Asharaiz-Logistics-LLC/";
     
     var subject = "🚀 New Signed Carrier Agreement: " + carrier + " (" + signer + ") [" + refId + "]";
 
@@ -40,7 +40,7 @@ function doPost(e) {
     var htmlBody = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
         <div style="background: #0f172a; padding: 25px 20px; text-align: center; border-bottom: 4px solid #f5b301;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 20px; letter-spacing: 0.5px;">J&B EXPEDITE LOGISTICS LLC</h1>
+          <h1 style="margin: 0; color: #ffffff; font-size: 20px; letter-spacing: 0.5px;">ASHARAIZ LOGISTICS LLC</h1>
           <p style="margin: 6px 0 0; color: #f5b301; font-size: 13px; font-weight: bold; text-transform: uppercase;">Official Carrier Agreement & Authorizations Submission</p>
         </div>
 
@@ -75,12 +75,12 @@ function doPost(e) {
         </div>
 
         <div style="background: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-          Submitted via J&B Expedite Official Web Portal • All Rights Reserved
+          Submitted via Asharaiz Logistics Official Web Portal • All Rights Reserved
         </div>
       </div>
     `;
 
-    // 3. Send email directly from Google to qaim9825@gmail.com
+    // 3. Send email directly from Google to asharaizexpedite@gmail.com
     MailApp.sendEmail({
       to: recipient,
       subject: subject,
