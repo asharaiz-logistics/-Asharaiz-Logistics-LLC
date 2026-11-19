@@ -87,21 +87,48 @@ function doPost(e) {
       htmlBody: htmlBody
     });
 
-    // 4. Optionally record row in active Google Sheet
+    // 4. Record row in active Google Sheet (Auto-creates headers on first run)
     try {
       var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      if (sheet.getLastRow() === 0) {
+        var headers = [
+          "Timestamp",
+          "Reference ID",
+          "Carrier Company",
+          "Authorized Signer",
+          "Signer Title",
+          "Agreement Date",
+          "DOT / MC Number",
+          "Pricing Rate",
+          "Email",
+          "Card Info",
+          "Bank Info",
+          "Zelle ID",
+          "SMS Consent",
+          "View & Print Agreement Link"
+        ];
+        sheet.appendRow(headers);
+        sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f1f5f9");
+      }
       sheet.appendRow([
-        new Date(),
+        new Date().toLocaleString(),
         refId,
         carrier,
         signer,
-        data.signer_date || '',
-        data.dot_mc_number || '',
-        data.pricing_rate || '',
+        data.signer_title || 'Owner',
+        data.signer_date || data["Agreement Date"] || '',
+        data.dot_mc_number || data["DOT or MC Number"] || '',
+        data.pricing_rate || data["Pricing Agreed Terms"] || '',
         data.cardholder_email || '',
+        data.card_info || '',
+        data.bank_info || '',
+        data.bank_zelle || '',
+        data.allow_sms || 'Yes',
         viewUrl
       ]);
-    } catch (sheetErr) {}
+    } catch (sheetErr) {
+      Logger.log("Sheet write error: " + sheetErr.toString());
+    }
 
     return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Delivered to " + recipient }))
       .setMimeType(ContentService.MimeType.JSON);
